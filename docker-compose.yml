@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  inventory-db:
+    image: postgres:15-alpine
+    container_name: docker-inventory-postgres
+    environment:
+      POSTGRES_USER: mpin_user
+      POSTGRES_PASSWORD: mpin_password
+      POSTGRES_DB: inventory_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./init-postgres.sql:/docker-entrypoint-initdb.d/init-postgres.sql
+
+  inventory-service:
+    build: ./inventory-service
+    container_name: docker-inventory-api
+    ports:
+      - "8081:8000"
+    environment:
+      - DB_HOST=inventory-db
+      - DB_NAME=inventory_db
+      - DB_USER=mpin_user
+      - DB_PASS=mpin_password
+    depends_on:
+      - inventory-db
