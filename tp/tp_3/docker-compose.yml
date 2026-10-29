@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  delivery-mock-api:
+    image: stoplight/prism:4
+    container_name: mpin-delivery-mock
+    ports:
+      - "4010:4010" # Exposé sur le port 4010 de la machine Windows
+    volumes:
+      - ./delivery-api.yaml:/usr/src/prism/packages/cli/delivery-api.yaml
+    command: mock -h 0.0.0.0 /usr/src/prism/packages/cli/delivery-api.yaml
+    restart: always

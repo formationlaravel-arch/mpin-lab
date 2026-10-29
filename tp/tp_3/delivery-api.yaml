@@ -1,0 +1,112 @@
+openapi: 3.0.3
+info:
+  title: API Microservice Delivery MPIN
+  description: Contrat d'interface strict pour la gestion des livraisons de repas
+  version: 1.0.0
+
+paths:
+  /deliveries:
+    post:
+      summary: Creer une nouvelle demande de livraison
+      operationId: createDelivery
+      requestBody:
+        description: Payload pour initier une livraison
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeliveryRequest'
+      responses:
+        '201':
+          description: Livraison creee avec succes et enregistree
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryResponse'
+        '400':
+          description: Requete invalide - Contrat non respecte
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /deliveries/{delivery_id}:
+    get:
+      summary: Consulter le statut d'une livraison specifique
+      operationId: getDeliveryById
+      parameters:
+        - name: delivery_id
+          in: path
+          required: true
+          description: Identifiant unique de la livraison
+          schema:
+            type: string
+            example: "DLV-9982"
+      responses:
+        '200':
+          description: Informations de statut de la livraison trouvee
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryResponse'
+        '404':
+          description: Livraison introuvable sur le reseau
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    DeliveryRequest:
+      type: object
+      required:
+        - order_id
+        - address
+      properties:
+        order_id:
+          type: string
+          description: L'identifiant unique de la commande associee
+          example: "ORD-4512"
+        address:
+          type: string
+          description: L'adresse physique de destination complete
+          example: "123 Avenue des Technologies, Tunis"
+        notes:
+          type: string
+          description: Instructions de livraison optionnelles
+          example: "Sonner à l'interphone B, 3eme etage"
+    
+    DeliveryResponse:
+      type: object
+      properties:
+        delivery_id:
+          type: string
+          example: "DLV-9982"
+        order_id:
+          type: string
+          example: "ORD-4512"
+        status:
+          type: string
+          enum: [PENDING, PROCESSING, COLLECTED, DELIVERED, FAILED]
+          example: "PROCESSING"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2026-10-29T15:30:00Z"
+
+    ErrorResponse:
+      type: object
+      properties:
+        type:
+          type: string
+          example: "https://mpin-api.tn"
+        title:
+          type: string
+          example: "Invalid Request Payload"
+        status:
+          type: integer
+          example: 400
+        detail:
+          type: string
+          example: "The required field 'address' is missing from the JSON body."
