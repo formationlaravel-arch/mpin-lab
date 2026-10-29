@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+  orders-db:
+    image: mysql:8.0
+    container_name: monolith-mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: monolith_db
+      MYSQL_USER: mpin_user
+      MYSQL_PASSWORD: mpin_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  monolith-service:
+    build: .
+    container_name: monolith-app
+    ports:
+      - "8080:8000"
+    environment:
+      - DB_HOST=orders-db
+      - DB_NAME=monolith_db
+      - DB_USER=mpin_user
+      - DB_PASS=mpin_password
+    depends_on:
+      - orders-db

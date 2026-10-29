@@ -1,0 +1,54 @@
+version: '3.8'
+services:
+  orders-db:
+    image: mysql:8.0
+    container_name: micro-mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: orders_db
+      MYSQL_USER: mpin_user
+      MYSQL_PASSWORD: mpin_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./order-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  inventory-db:
+    image: postgres:15-alpine
+    container_name: micro-postgres-db
+    environment:
+      POSTGRES_USER: mpin_user
+      POSTGRES_PASSWORD: mpin_password
+      POSTGRES_DB: inventory_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./inventory-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  order-service:
+    build: ./order-service
+    container_name: micro-order-api
+    ports:
+      - "8082:8000"
+    environment:
+      - DB_HOST=orders-db
+      - DB_NAME=orders_db
+      - DB_USER=mpin_user
+      - DB_PASS=mpin_password
+      - INVENTORY_SERVICE_URL=http://inventory-service:8000
+    depends_on:
+      - orders-db
+      - inventory-service
+
+  inventory-service:
+    build: ./inventory-service
+    container_name: micro-inventory-api
+    ports:
+      - "8083:8000"
+    environment:
+      - DB_HOST=inventory-db
+      - DB_NAME=inventory_db
+      - DB_USER=mpin_user
+      - DB_PASS=mpin_password
+    depends_on:
+      - inventory-db
